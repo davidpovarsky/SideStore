@@ -123,9 +123,31 @@ final class ResignAppOperation: BasePipelineOperation<InstallAppOperationContext
         // Prepare app
         try self.prepare(appBundle, bundleID: bundleIdentifier, additionalInfoDictionaryValues: additionalValues, profiles: profiles, appexBundleIds: appexBundleIds)
         try self.removeMissingAppExtensionReferences(from: appBundle)
-        
-        if let directory = appBundle.builtInPlugInsURL,
-           let enumerator = FileManager.default.enumerator(at: directory, includingPropertiesForKeys: nil, options: [.skipsSubdirectoryDescendants]) {
+
+        var extensionDirectories: [URL] = []
+
+        // Traditional app extensions live in PlugIns/.
+        if let pluginsURL = appBundle.builtInPlugInsURL {
+            extensionDirectories.append(pluginsURL)
+        }
+
+        // ExtensionKit app extensions live in Extensions/ and must have their
+        // Info.plist rewritten to the resigned bundle identifier as well.
+        let extensionKitURL = appBundle.bundleURL
+            .appendingPathComponent("Extensions", isDirectory: true)
+        if FileManager.default.fileExists(atPath: extensionKitURL.path) {
+            extensionDirectories.append(extensionKitURL)
+        }
+
+        for directory in extensionDirectories {
+            guard let enumerator = FileManager.default.enumerator(
+                at: directory,
+                includingPropertiesForKeys: nil,
+                options: [.skipsSubdirectoryDescendants]
+            ) else {
+                continue
+            }
+
             while let fileURL = enumerator.nextObject() as? URL {
                 // for both sim and device, in debug mode builds, remove the tests bundles (if any)
                 #if DEBUG
@@ -135,6 +157,10 @@ final class ResignAppOperation: BasePipelineOperation<InstallAppOperationContext
                     continue
                 }
                 #endif
+
+                guard fileURL.pathExtension.lowercased() == "appex" else {
+                    continue
+                }
                 
                 guard let appExtension = Bundle(url: fileURL) else { throw ALTError(.missingAppBundle) }
                 let updatedAppExBundleId = appExtension.bundleIdentifier?.replacingOccurrences(of: targetAppBundle.bundleIdentifier, with: bundleIdentifier)
