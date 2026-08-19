@@ -5,5 +5,5 @@
     branch = develop
 [submodule "Dependencies/AltSign"]
     path = Dependencies/AltSign
-    url = https://github.com/SideStore/AltSign
-    branch = master
+    url = https://github.com/davidpovarsky/AltSign
+    branch = agent/extensionkit-support
