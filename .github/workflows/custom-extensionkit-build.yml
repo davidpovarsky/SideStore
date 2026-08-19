@@ -17,12 +17,49 @@ jobs:
           submodules: recursive
           fetch-depth: 0
 
-      - name: Verify ExtensionKit patches
+      - name: Verify ExtensionKit dependency chain
         run: |
-          test "$(git -C Dependencies/AltSign rev-parse HEAD)" = "96f47c7ebde362463a017a76613a5771c1b1631e"
+          test "$(git -C Dependencies/AltSign rev-parse HEAD)" = "a326c341120d6de9b0e1666f9d2991843b0102c3"
+          test "$(git -C Dependencies/AltSign/Dependencies/ldid rev-parse HEAD)" = "040463e328a4daf4756e49bf4682092a065c0f34"
+          grep -q 'github.com/davidpovarsky/ldid.git' Dependencies/AltSign/.gitmodules
           grep -q 'appendingPathComponent("Extensions", isDirectory: true)' Dependencies/AltSign/Sources/Model/ALTApplication.swift
           grep -q 'appendingPathComponent("Extensions", isDirectory: true)' SideStore/Core/Operations/PipelineOperations/ResignAppOperation.swift
           grep -q 'extensionDirectories.append(extensionKitURL)' SideStore/Core/Operations/PipelineOperations/ResignAppOperation.swift
+
+      - name: Patch ldid for ExtensionKit nested code
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          path = Path("Dependencies/AltSign/Dependencies/ldid/ldid.cpp")
+          text = path.read_text()
+
+          replacements = [
+              (
+                  "Frameworks|SharedFrameworks|PlugIns|Plug-ins|XPCServices",
+                  "Frameworks|SharedFrameworks|PlugIns|Plug-ins|Extensions|XPCServices",
+              ),
+              (
+                  r"Frameworks/[^/]*\\.framework|PlugIns/[^/]*\\.appex",
+                  r"Frameworks/[^/]*\\.framework|(PlugIns|Extensions)/[^/]*\\.appex",
+              ),
+              (
+                  'Starts(name, "PlugIns/") ? alter :',
+                  '(Starts(name, "PlugIns/") || Starts(name, "Extensions/")) ? alter :',
+              ),
+          ]
+
+          for old, new in replacements:
+              count = text.count(old)
+              if count != 1:
+                  raise RuntimeError(f"Expected exactly one ldid match for {old!r}, found {count}")
+              text = text.replace(old, new)
+
+          path.write_text(text)
+          PY
+
+          grep -Fq '(PlugIns|Extensions)/[^/]*\\.appex' Dependencies/AltSign/Dependencies/ldid/ldid.cpp
+          grep -Fq 'Starts(name, "Extensions/")' Dependencies/AltSign/Dependencies/ldid/ldid.cpp
 
       - name: Install build tools
         run: brew install ldid xcbeautify
