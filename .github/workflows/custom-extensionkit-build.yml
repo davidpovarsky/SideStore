@@ -17,10 +17,12 @@ jobs:
           submodules: recursive
           fetch-depth: 0
 
-      - name: Verify patched AltSign
+      - name: Verify ExtensionKit patches
         run: |
           test "$(git -C Dependencies/AltSign rev-parse HEAD)" = "96f47c7ebde362463a017a76613a5771c1b1631e"
           grep -q 'appendingPathComponent("Extensions", isDirectory: true)' Dependencies/AltSign/Sources/Model/ALTApplication.swift
+          grep -q 'appendingPathComponent("Extensions", isDirectory: true)' SideStore/Core/Operations/PipelineOperations/ResignAppOperation.swift
+          grep -q 'extensionDirectories.append(extensionKitURL)' SideStore/Core/Operations/PipelineOperations/ResignAppOperation.swift
 
       - name: Install build tools
         run: brew install ldid xcbeautify
