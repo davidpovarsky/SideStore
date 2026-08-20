@@ -19,7 +19,7 @@ jobs:
 
       - name: Verify ExtensionKit dependency chain
         run: |
-          test "$(git -C Dependencies/AltSign rev-parse HEAD)" = "19e04877ea78aa0cf1980d1e3b9a2cc0b5f0cdef"
+          test "$(git -C Dependencies/AltSign rev-parse HEAD)" = "562a0b288bc9f7e07ee7e74dc478cd74f5d61d3b"
           test "$(git -C Dependencies/AltSign/Dependencies/ldid rev-parse HEAD)" = "040463e328a4daf4756e49bf4682092a065c0f34"
           grep -q 'github.com/davidpovarsky/ldid.git' Dependencies/AltSign/.gitmodules
           grep -q 'appendingPathComponent("Extensions", isDirectory: true)' Dependencies/AltSign/Sources/Model/ALTApplication.swift
@@ -28,6 +28,7 @@ jobs:
           grep -q 'com.apple.developer.translation-app' Dependencies/AltSign/Sources/ALTCapabilities.swift
           grep -q 'enableDynamicCapability' Dependencies/AltSign/Sources/ALTAppleAPI+DynamicCapabilities.swift
           grep -q 'profileKey' Dependencies/AltSign/Sources/ALTAppleAPI+DynamicCapabilities.swift
+          grep -q '^import SwiftBridge$' Dependencies/AltSign/Sources/ALTAppleAPI+DynamicCapabilities.swift
 
       - name: Patch ldid for ExtensionKit nested code
         run: |
