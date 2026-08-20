@@ -70,28 +70,12 @@ jobs:
 
           path = Path("SideStore/Core/Operations/PipelineOperations/FetchProvisioningProfilesOperation.swift")
           text = path.read_text()
-
-          old = '''        self.debugLog("[FetchProvisioningProfilesInstall] Fetching profile from Apple for App ID \\(groupAppID.bundleIdentifier)...")
-        return try await super.fetchProvisioningProfile(for: groupAppID, targetAppBundle: targetAppBundle, team: team, session: session)
-'''
-          new = '''        self.debugLog("[FetchProvisioningProfilesInstall] Fetching profile from Apple for App ID \\(groupAppID.bundleIdentifier)...")
-        let profile = try await super.fetchProvisioningProfile(for: groupAppID, targetAppBundle: targetAppBundle, team: team, session: session)
-
-        if targetAppBundle.entitlements[ALTEntitlementTranslationApp] as? Bool == true {
-            let granted = profile.entitlements[ALTEntitlementTranslationApp] as? Bool == true
-            self.debugLog("[FetchProvisioningProfilesInstall] Translation entitlement requested; provisioning profile granted=\\(granted)")
-            guard granted else {
-                throw OperationError.invalidParameters("Apple did not grant com.apple.developer.translation-app in the provisioning profile for \\(groupAppID.bundleIdentifier). This Apple ID/team cannot currently provision the Default Translation App capability through SideStore.")
-            }
-        }
-
-        return profile
-'''
+          old = '        self.debugLog("[FetchProvisioningProfilesInstall] Fetching profile from Apple for App ID \\(groupAppID.bundleIdentifier)...")\n        return try await super.fetchProvisioningProfile(for: groupAppID, targetAppBundle: targetAppBundle, team: team, session: session)\n'
+          new = '        self.debugLog("[FetchProvisioningProfilesInstall] Fetching profile from Apple for App ID \\(groupAppID.bundleIdentifier)...")\n        let profile = try await super.fetchProvisioningProfile(for: groupAppID, targetAppBundle: targetAppBundle, team: team, session: session)\n\n        if targetAppBundle.entitlements[ALTEntitlementTranslationApp] as? Bool == true {\n            let granted = profile.entitlements[ALTEntitlementTranslationApp] as? Bool == true\n            self.debugLog("[FetchProvisioningProfilesInstall] Translation entitlement requested; provisioning profile granted=\\(granted)")\n            guard granted else {\n                throw OperationError.invalidParameters("Apple did not grant com.apple.developer.translation-app in the provisioning profile for \\(groupAppID.bundleIdentifier). This Apple ID/team cannot currently provision the Default Translation App capability through SideStore.")\n            }\n        }\n\n        return profile\n'
 
           count = text.count(old)
           if count != 1:
               raise RuntimeError(f"Expected exactly one provisioning-profile return block, found {count}")
-
           path.write_text(text.replace(old, new))
           PY
 
