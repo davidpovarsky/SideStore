@@ -19,12 +19,14 @@ jobs:
 
       - name: Verify ExtensionKit dependency chain
         run: |
-          test "$(git -C Dependencies/AltSign rev-parse HEAD)" = "a326c341120d6de9b0e1666f9d2991843b0102c3"
+          test "$(git -C Dependencies/AltSign rev-parse HEAD)" = "708b349ab03b5c93f70e290f1c9c824927d8cd0e"
           test "$(git -C Dependencies/AltSign/Dependencies/ldid rev-parse HEAD)" = "040463e328a4daf4756e49bf4682092a065c0f34"
           grep -q 'github.com/davidpovarsky/ldid.git' Dependencies/AltSign/.gitmodules
           grep -q 'appendingPathComponent("Extensions", isDirectory: true)' Dependencies/AltSign/Sources/Model/ALTApplication.swift
           grep -q 'appendingPathComponent("Extensions", isDirectory: true)' SideStore/Core/Operations/PipelineOperations/ResignAppOperation.swift
           grep -q 'extensionDirectories.append(extensionKitURL)' SideStore/Core/Operations/PipelineOperations/ResignAppOperation.swift
+          grep -q 'com.apple.developer.translation-app' Dependencies/AltSign/Sources/ALTCapabilities.swift
+          grep -q 'ALTEntitlementTranslationApp' Dependencies/AltSign/Sources/ALTCapabilities.swift
 
       - name: Patch ldid for ExtensionKit nested code
         run: |
