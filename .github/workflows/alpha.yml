@@ -27,22 +27,54 @@ jobs:
       UPSTREAM_CHANNEL: "nightly"
 
     steps:
+      - name: Live Activity · refresh
+        uses: davidpovarsky/github-automation/live-refresh@main
+        continue-on-error: true
+        with:
+          event: refresh
+          device_id: ${{ secrets.NOTIFY_DEVICE_ID }}
+          token: ${{ secrets.NOTIFY_DEVICE_TOKEN }}
+          github_token: ${{ github.token }}
       - uses: actions/checkout@v4
         with:
           submodules: recursive
           fetch-depth: 0
 
+      - name: Live Activity · refresh
+        uses: davidpovarsky/github-automation/live-refresh@main
+        continue-on-error: true
+        with:
+          event: refresh
+          device_id: ${{ secrets.NOTIFY_DEVICE_ID }}
+          token: ${{ secrets.NOTIFY_DEVICE_TOKEN }}
+          github_token: ${{ github.token }}
       - name: Find Last Successful commit
         run: |
           LAST_SUCCESSFUL_COMMIT=$(python3 scripts/ci/workflow.py last-successful-commit \
             "false" "${{ env.CHANNEL }}" || echo "")
           echo "LAST_SUCCESSFUL_COMMIT=$LAST_SUCCESSFUL_COMMIT" | tee -a $GITHUB_ENV
 
+      - name: Live Activity · refresh
+        uses: davidpovarsky/github-automation/live-refresh@main
+        continue-on-error: true
+        with:
+          event: refresh
+          device_id: ${{ secrets.NOTIFY_DEVICE_ID }}
+          token: ${{ secrets.NOTIFY_DEVICE_TOKEN }}
+          github_token: ${{ github.token }}
       - run: brew install ldid xcbeautify
 
       # --------------------------------------------------
       # runtime env setup
       # --------------------------------------------------
+      - name: Live Activity · refresh
+        uses: davidpovarsky/github-automation/live-refresh@main
+        continue-on-error: true
+        with:
+          event: refresh
+          device_id: ${{ secrets.NOTIFY_DEVICE_ID }}
+          token: ${{ secrets.NOTIFY_DEVICE_TOKEN }}
+          github_token: ${{ github.token }}
       - name: Setup Env
         run: |
           BUILD_NUM="${{ github.run_number }}"
@@ -60,11 +92,27 @@ jobs:
           echo "SHORT_COMMIT=$SHORT_COMMIT" | tee -a $GITHUB_ENV
           echo "MARKETING_VERSION=$NORMALIZED_VERSION" | tee -a $GITHUB_ENV
 
+      - name: Live Activity · refresh
+        uses: davidpovarsky/github-automation/live-refresh@main
+        continue-on-error: true
+        with:
+          event: refresh
+          device_id: ${{ secrets.NOTIFY_DEVICE_ID }}
+          token: ${{ secrets.NOTIFY_DEVICE_TOKEN }}
+          github_token: ${{ github.token }}
       - name: Setup Xcode
         uses: maxim-lobanov/setup-xcode@v1.6.0
         with:
           xcode-version: "26.2"
 
+      - name: Live Activity · refresh
+        uses: davidpovarsky/github-automation/live-refresh@main
+        continue-on-error: true
+        with:
+          event: refresh
+          device_id: ${{ secrets.NOTIFY_DEVICE_ID }}
+          token: ${{ secrets.NOTIFY_DEVICE_TOKEN }}
+          github_token: ${{ github.token }}
       - name: Restore Cache (exact)
         id: xcode-cache-exact
         uses: actions/cache/restore@v3
@@ -74,6 +122,15 @@ jobs:
             ~/Library/Caches/org.swift.swiftpm
           key: xcode-build-cache-${{ github.ref_name }}-${{ github.sha }}
 
+      - name: Live Activity · refresh
+        if: steps.xcode-cache-exact.outputs.cache-hit != 'true'
+        uses: davidpovarsky/github-automation/live-refresh@main
+        continue-on-error: true
+        with:
+          event: refresh
+          device_id: ${{ secrets.NOTIFY_DEVICE_ID }}
+          token: ${{ secrets.NOTIFY_DEVICE_TOKEN }}
+          github_token: ${{ github.token }}
       - name: Restore Cache (last)
         if: steps.xcode-cache-exact.outputs.cache-hit != 'true'
         id: xcode-cache-fallback
@@ -87,6 +144,15 @@ jobs:
       # --------------------------------------------------
       # build and test
       # --------------------------------------------------
+      - name: Live Activity · refresh
+        if: contains(github.event.head_commit.message, '[--clean-build]')
+        uses: davidpovarsky/github-automation/live-refresh@main
+        continue-on-error: true
+        with:
+          event: refresh
+          device_id: ${{ secrets.NOTIFY_DEVICE_ID }}
+          token: ${{ secrets.NOTIFY_DEVICE_TOKEN }}
+          github_token: ${{ github.token }}
       - name: Clean
         if: contains(github.event.head_commit.message, '[--clean-build]')
         run: |
@@ -94,6 +160,17 @@ jobs:
           python3 scripts/ci/workflow.py clean-derived-data
           python3 scripts/ci/workflow.py clean-spm-cache
 
+      - name: Live Activity · refresh
+        if: >
+          vars.ENABLE_TESTS == '1' &&
+          vars.ENABLE_TESTS_RUN == '1'
+        uses: davidpovarsky/github-automation/live-refresh@main
+        continue-on-error: true
+        with:
+          event: refresh
+          device_id: ${{ secrets.NOTIFY_DEVICE_ID }}
+          token: ${{ secrets.NOTIFY_DEVICE_TOKEN }}
+          github_token: ${{ github.token }}
       - name: Boot simulator (async)
         if: >
           vars.ENABLE_TESTS == '1' &&
@@ -102,6 +179,14 @@ jobs:
           mkdir -p build/logs
           python3 scripts/ci/workflow.py boot-sim-async "iPhone 17 Pro"
 
+      - name: Live Activity · refresh
+        uses: davidpovarsky/github-automation/live-refresh@main
+        continue-on-error: true
+        with:
+          event: refresh
+          device_id: ${{ secrets.NOTIFY_DEVICE_ID }}
+          token: ${{ secrets.NOTIFY_DEVICE_TOKEN }}
+          github_token: ${{ github.token }}
       - name: Build
         id: build
         env:
@@ -112,6 +197,17 @@ jobs:
           echo "encrypted=true" >> $GITHUB_OUTPUT
           exit $STATUS
 
+      - name: Live Activity · refresh
+        if: >
+          vars.ENABLE_TESTS == '1' &&
+          vars.ENABLE_TESTS_BUILD == '1'
+        uses: davidpovarsky/github-automation/live-refresh@main
+        continue-on-error: true
+        with:
+          event: refresh
+          device_id: ${{ secrets.NOTIFY_DEVICE_ID }}
+          token: ${{ secrets.NOTIFY_DEVICE_TOKEN }}
+          github_token: ${{ github.token }}
       - name: Tests Build
         id: test-build
         if: >
@@ -124,6 +220,15 @@ jobs:
           python3 scripts/ci/workflow.py encrypt-tests-build
           exit $STATUS
 
+      - name: Live Activity · refresh
+        if: ${{ steps.xcode-cache-fallback.outputs.cache-hit != 'true' }}
+        uses: davidpovarsky/github-automation/live-refresh@main
+        continue-on-error: true
+        with:
+          event: refresh
+          device_id: ${{ secrets.NOTIFY_DEVICE_ID }}
+          token: ${{ secrets.NOTIFY_DEVICE_TOKEN }}
+          github_token: ${{ github.token }}
       - name: Save Cache
         if: ${{ steps.xcode-cache-fallback.outputs.cache-hit != 'true' }}
         uses: actions/cache/save@v3
@@ -133,6 +238,17 @@ jobs:
             ~/Library/Caches/org.swift.swiftpm
           key: xcode-build-cache-${{ github.ref_name }}-${{ github.sha }}
 
+      - name: Live Activity · refresh
+        if: >
+          vars.ENABLE_TESTS == '1' &&
+          vars.ENABLE_TESTS_RUN == '1'
+        uses: davidpovarsky/github-automation/live-refresh@main
+        continue-on-error: true
+        with:
+          event: refresh
+          device_id: ${{ secrets.NOTIFY_DEVICE_ID }}
+          token: ${{ secrets.NOTIFY_DEVICE_TOKEN }}
+          github_token: ${{ github.token }}
       - name: Tests Run
         id: test-run
         if: >
@@ -148,11 +264,30 @@ jobs:
       # --------------------------------------------------
       # artifacts
       # --------------------------------------------------
+      - name: Live Activity · refresh
+        uses: davidpovarsky/github-automation/live-refresh@main
+        continue-on-error: true
+        with:
+          event: refresh
+          device_id: ${{ secrets.NOTIFY_DEVICE_ID }}
+          token: ${{ secrets.NOTIFY_DEVICE_TOKEN }}
+          github_token: ${{ github.token }}
       - uses: actions/upload-artifact@v4
         with:
           name: build-logs-${{ env.MARKETING_VERSION }}.zip
           path: build-logs.zip
 
+      - name: Live Activity · refresh
+        if: >
+          vars.ENABLE_TESTS == '1' &&
+          vars.ENABLE_TESTS_BUILD == '1'
+        uses: davidpovarsky/github-automation/live-refresh@main
+        continue-on-error: true
+        with:
+          event: refresh
+          device_id: ${{ secrets.NOTIFY_DEVICE_ID }}
+          token: ${{ secrets.NOTIFY_DEVICE_TOKEN }}
+          github_token: ${{ github.token }}
       - uses: actions/upload-artifact@v4
         if: >
           vars.ENABLE_TESTS == '1' &&
@@ -161,6 +296,17 @@ jobs:
           name: tests-build-logs-${{ env.SHORT_COMMIT }}.zip
           path: tests-build-logs.zip
 
+      - name: Live Activity · refresh
+        if: >
+          vars.ENABLE_TESTS == '1' &&
+          vars.ENABLE_TESTS_RUN == '1'
+        uses: davidpovarsky/github-automation/live-refresh@main
+        continue-on-error: true
+        with:
+          event: refresh
+          device_id: ${{ secrets.NOTIFY_DEVICE_ID }}
+          token: ${{ secrets.NOTIFY_DEVICE_TOKEN }}
+          github_token: ${{ github.token }}
       - uses: actions/upload-artifact@v4
         if: >
           vars.ENABLE_TESTS == '1' &&
@@ -169,15 +315,40 @@ jobs:
           name: tests-run-logs-${{ env.SHORT_COMMIT }}.zip
           path: tests-run-logs.zip
 
+      - name: Live Activity · refresh
+        uses: davidpovarsky/github-automation/live-refresh@main
+        continue-on-error: true
+        with:
+          event: refresh
+          device_id: ${{ secrets.NOTIFY_DEVICE_ID }}
+          token: ${{ secrets.NOTIFY_DEVICE_TOKEN }}
+          github_token: ${{ github.token }}
       - uses: actions/upload-artifact@v4
         with:
           name: SideStore-${{ env.MARKETING_VERSION }}.ipa
           path: SideStore.ipa
+      - name: Live Activity · refresh
+        uses: davidpovarsky/github-automation/live-refresh@main
+        continue-on-error: true
+        with:
+          event: refresh
+          device_id: ${{ secrets.NOTIFY_DEVICE_ID }}
+          token: ${{ secrets.NOTIFY_DEVICE_TOKEN }}
+          github_token: ${{ github.token }}
       - uses: actions/upload-artifact@v4
         with:
           name: SideStore-${{ env.MARKETING_VERSION }}-dSYMs.zip
           path: SideStore.dSYMs.zip
 
+      - name: Live Activity · refresh
+        if: env.DEPLOY_KEY != ''
+        uses: davidpovarsky/github-automation/live-refresh@main
+        continue-on-error: true
+        with:
+          event: refresh
+          device_id: ${{ secrets.NOTIFY_DEVICE_ID }}
+          token: ${{ secrets.NOTIFY_DEVICE_TOKEN }}
+          github_token: ${{ github.token }}
       - uses: actions/checkout@v4
         if: env.DEPLOY_KEY != ''
         with:
@@ -186,6 +357,14 @@ jobs:
           token: ${{ secrets.CROSS_REPO_PUSH_KEY }}
           path: "SideStore/apps-v2.json"
 
+      - name: Live Activity · refresh
+        uses: davidpovarsky/github-automation/live-refresh@main
+        continue-on-error: true
+        with:
+          event: refresh
+          device_id: ${{ secrets.NOTIFY_DEVICE_ID }}
+          token: ${{ secrets.NOTIFY_DEVICE_TOKEN }}
+          github_token: ${{ github.token }}
       - name: Generate Metadata
         run: |
           python3 scripts/ci/workflow.py dump-project-settings
@@ -202,6 +381,15 @@ jobs:
             "$IPA_NAME" \
             "$LAST_SUCCESSFUL_COMMIT"
 
+      - name: Live Activity · refresh
+        if: env.DEPLOY_KEY != ''
+        uses: davidpovarsky/github-automation/live-refresh@main
+        continue-on-error: true
+        with:
+          event: refresh
+          device_id: ${{ secrets.NOTIFY_DEVICE_ID }}
+          token: ${{ secrets.NOTIFY_DEVICE_TOKEN }}
+          github_token: ${{ github.token }}
       - name: Deploy
         if: env.DEPLOY_KEY != ''
         run: |
@@ -217,6 +405,14 @@ jobs:
       # --------------------------------------------------
       # upload release to GH
       # --------------------------------------------------
+      - name: Live Activity · refresh
+        uses: davidpovarsky/github-automation/live-refresh@main
+        continue-on-error: true
+        with:
+          event: refresh
+          device_id: ${{ secrets.NOTIFY_DEVICE_ID }}
+          token: ${{ secrets.NOTIFY_DEVICE_TOKEN }}
+          github_token: ${{ github.token }}
       - name: Upload Release
         run: |
           python3 scripts/ci/workflow.py upload-release \
