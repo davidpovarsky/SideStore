@@ -23,13 +23,37 @@ jobs:
     runs-on: macos-26
 
     steps:
+      - name: Live Activity · refresh
+        uses: davidpovarsky/github-automation/live-refresh@main
+        continue-on-error: true
+        with:
+          event: refresh
+          device_id: ${{ secrets.NOTIFY_DEVICE_ID }}
+          token: ${{ secrets.NOTIFY_DEVICE_TOKEN }}
+          github_token: ${{ github.token }}
       - uses: actions/checkout@v4
         with:
           submodules: recursive
           fetch-depth: 1    # shallow clone just for PR
 
+      - name: Live Activity · refresh
+        uses: davidpovarsky/github-automation/live-refresh@main
+        continue-on-error: true
+        with:
+          event: refresh
+          device_id: ${{ secrets.NOTIFY_DEVICE_ID }}
+          token: ${{ secrets.NOTIFY_DEVICE_TOKEN }}
+          github_token: ${{ github.token }}
       - run: brew install ldid xcbeautify
 
+      - name: Live Activity · refresh
+        uses: davidpovarsky/github-automation/live-refresh@main
+        continue-on-error: true
+        with:
+          event: refresh
+          device_id: ${{ secrets.NOTIFY_DEVICE_ID }}
+          token: ${{ secrets.NOTIFY_DEVICE_TOKEN }}
+          github_token: ${{ github.token }}
       - name: Setup Env
         run: |
           MARKETING_VERSION=$(python3 scripts/ci/workflow.py get-marketing-version)
@@ -39,11 +63,27 @@ jobs:
           echo "SHORT_COMMIT=$SHORT_COMMIT" | tee -a $GITHUB_ENV
           echo "MARKETING_VERSION=$NORMALIZED_VERSION" | tee -a $GITHUB_ENV
 
+      - name: Live Activity · refresh
+        uses: davidpovarsky/github-automation/live-refresh@main
+        continue-on-error: true
+        with:
+          event: refresh
+          device_id: ${{ secrets.NOTIFY_DEVICE_ID }}
+          token: ${{ secrets.NOTIFY_DEVICE_TOKEN }}
+          github_token: ${{ github.token }}
       - name: Setup Xcode
         uses: maxim-lobanov/setup-xcode@v1.6.0
         with:
           xcode-version: "26.2"
 
+      - name: Live Activity · refresh
+        uses: davidpovarsky/github-automation/live-refresh@main
+        continue-on-error: true
+        with:
+          event: refresh
+          device_id: ${{ secrets.NOTIFY_DEVICE_ID }}
+          token: ${{ secrets.NOTIFY_DEVICE_TOKEN }}
+          github_token: ${{ github.token }}
       - name: Restore Cache (exact)
         id: xcode-cache-exact
         uses: actions/cache/restore@v3
@@ -53,6 +93,15 @@ jobs:
             ~/Library/Caches/org.swift.swiftpm
           key: xcode-build-cache-${{ github.ref_name }}-${{ github.sha }}
 
+      - name: Live Activity · refresh
+        if: steps.xcode-cache-exact.outputs.cache-hit != 'true'
+        uses: davidpovarsky/github-automation/live-refresh@main
+        continue-on-error: true
+        with:
+          event: refresh
+          device_id: ${{ secrets.NOTIFY_DEVICE_ID }}
+          token: ${{ secrets.NOTIFY_DEVICE_TOKEN }}
+          github_token: ${{ github.token }}
       - name: Restore Cache (last)
         if: steps.xcode-cache-exact.outputs.cache-hit != 'true'
         id: xcode-cache-fallback
@@ -63,6 +112,14 @@ jobs:
             ~/Library/Caches/org.swift.swiftpm
           key: xcode-build-cache-${{ github.ref_name }}-
 
+      - name: Live Activity · refresh
+        uses: davidpovarsky/github-automation/live-refresh@main
+        continue-on-error: true
+        with:
+          event: refresh
+          device_id: ${{ secrets.NOTIFY_DEVICE_ID }}
+          token: ${{ secrets.NOTIFY_DEVICE_TOKEN }}
+          github_token: ${{ github.token }}
       - name: Build
         env:
           BUILD_LOG_ZIP_PASSWORD: ${{ secrets.BUILD_LOG_ZIP_PASSWORD }}
@@ -72,6 +129,15 @@ jobs:
           mv SideStore.ipa SideStore-${{ env.MARKETING_VERSION }}.ipa
           exit $STATUS
 
+      - name: Live Activity · refresh
+        if: ${{ steps.xcode-cache-fallback.outputs.cache-hit != 'true' }}
+        uses: davidpovarsky/github-automation/live-refresh@main
+        continue-on-error: true
+        with:
+          event: refresh
+          device_id: ${{ secrets.NOTIFY_DEVICE_ID }}
+          token: ${{ secrets.NOTIFY_DEVICE_TOKEN }}
+          github_token: ${{ github.token }}
       - name: Save Cache
         if: ${{ steps.xcode-cache-fallback.outputs.cache-hit != 'true' }}
         uses: actions/cache/save@v3
@@ -81,16 +147,40 @@ jobs:
             ~/Library/Caches/org.swift.swiftpm
           key: xcode-build-cache-${{ github.ref_name }}-${{ github.sha }}
 
+      - name: Live Activity · refresh
+        uses: davidpovarsky/github-automation/live-refresh@main
+        continue-on-error: true
+        with:
+          event: refresh
+          device_id: ${{ secrets.NOTIFY_DEVICE_ID }}
+          token: ${{ secrets.NOTIFY_DEVICE_TOKEN }}
+          github_token: ${{ github.token }}
       - uses: actions/upload-artifact@v4
         with:
           name: build-logs-${{ env.MARKETING_VERSION }}.zip
           path: build-logs.zip
 
+      - name: Live Activity · refresh
+        uses: davidpovarsky/github-automation/live-refresh@main
+        continue-on-error: true
+        with:
+          event: refresh
+          device_id: ${{ secrets.NOTIFY_DEVICE_ID }}
+          token: ${{ secrets.NOTIFY_DEVICE_TOKEN }}
+          github_token: ${{ github.token }}
       - uses: actions/upload-artifact@v4
         with:
           name: SideStore-${{ env.MARKETING_VERSION }}.ipa
           path: SideStore-${{ env.MARKETING_VERSION }}.ipa
 
+      - name: Live Activity · refresh
+        uses: davidpovarsky/github-automation/live-refresh@main
+        continue-on-error: true
+        with:
+          event: refresh
+          device_id: ${{ secrets.NOTIFY_DEVICE_ID }}
+          token: ${{ secrets.NOTIFY_DEVICE_TOKEN }}
+          github_token: ${{ github.token }}
       - uses: actions/upload-artifact@v4
         with:
           name: SideStore-${{ env.MARKETING_VERSION }}-dSYMs.zip
