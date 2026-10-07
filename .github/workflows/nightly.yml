@@ -29,17 +29,42 @@ jobs:
       UPSTREAM_CHANNEL: ""
 
     steps:
+      - name: Live Activity · refresh
+        uses: davidpovarsky/github-automation/live-refresh@main
+        continue-on-error: true
+        with:
+          event: refresh
+          device_id: ${{ secrets.NOTIFY_DEVICE_ID }}
+          token: ${{ secrets.NOTIFY_DEVICE_TOKEN }}
+          github_token: ${{ github.token }}
       - uses: actions/checkout@v4
         with:
           submodules: recursive
           fetch-depth: 0
 
+      - name: Live Activity · refresh
+        uses: davidpovarsky/github-automation/live-refresh@main
+        continue-on-error: true
+        with:
+          event: refresh
+          device_id: ${{ secrets.NOTIFY_DEVICE_ID }}
+          token: ${{ secrets.NOTIFY_DEVICE_TOKEN }}
+          github_token: ${{ github.token }}
       - name: Find Last Successful commit
         run: |
           LAST_SUCCESSFUL_COMMIT=$(python3 scripts/ci/workflow.py last-successful-commit \
             "false" "${{ env.CHANNEL }}" || echo "")
           echo "LAST_SUCCESSFUL_COMMIT=$LAST_SUCCESSFUL_COMMIT" | tee -a $GITHUB_ENV
 
+      - name: Live Activity · refresh
+        if: github.event_name == 'schedule'
+        uses: davidpovarsky/github-automation/live-refresh@main
+        continue-on-error: true
+        with:
+          event: refresh
+          device_id: ${{ secrets.NOTIFY_DEVICE_ID }}
+          token: ${{ secrets.NOTIFY_DEVICE_TOKEN }}
+          github_token: ${{ github.token }}
       - name: Check for new changes (on schedule)
         id: check_changes
         if: github.event_name == 'schedule'
@@ -49,6 +74,14 @@ jobs:
           echo "should_build=$SHOULD_BUILD" >> $GITHUB_OUTPUT
           echo "NEW_COMMITS=$NEW_COMMITS" | tee -a $GITHUB_ENV
 
+      - name: Live Activity · refresh
+        uses: davidpovarsky/github-automation/live-refresh@main
+        continue-on-error: true
+        with:
+          event: refresh
+          device_id: ${{ secrets.NOTIFY_DEVICE_ID }}
+          token: ${{ secrets.NOTIFY_DEVICE_TOKEN }}
+          github_token: ${{ github.token }}
       - name: Should Skip Building (on schedule)
         id: build_gate
         run: |
@@ -59,12 +92,31 @@ jobs:
           )
           echo "should_skip=$SHOULD_SKIP" >> $GITHUB_OUTPUT
 
+      - name: Live Activity · refresh
+        if: steps.build_gate.outputs.should_skip != 'true'
+        
+        uses: davidpovarsky/github-automation/live-refresh@main
+        continue-on-error: true
+        with:
+          event: refresh
+          device_id: ${{ secrets.NOTIFY_DEVICE_ID }}
+          token: ${{ secrets.NOTIFY_DEVICE_TOKEN }}
+          github_token: ${{ github.token }}
       - run: brew install ldid xcbeautify
         if: steps.build_gate.outputs.should_skip != 'true'
 
       # --------------------------------------------------
       # runtime env setup
       # --------------------------------------------------
+      - name: Live Activity · refresh
+        if: steps.build_gate.outputs.should_skip != 'true'
+        uses: davidpovarsky/github-automation/live-refresh@main
+        continue-on-error: true
+        with:
+          event: refresh
+          device_id: ${{ secrets.NOTIFY_DEVICE_ID }}
+          token: ${{ secrets.NOTIFY_DEVICE_TOKEN }}
+          github_token: ${{ github.token }}
       - name: Setup Env
         if: steps.build_gate.outputs.should_skip != 'true'
         run: |
@@ -83,12 +135,30 @@ jobs:
           echo "SHORT_COMMIT=$SHORT_COMMIT" | tee -a $GITHUB_ENV
           echo "MARKETING_VERSION=$NORMALIZED_VERSION" | tee -a $GITHUB_ENV
 
+      - name: Live Activity · refresh
+        if: steps.build_gate.outputs.should_skip != 'true'
+        uses: davidpovarsky/github-automation/live-refresh@main
+        continue-on-error: true
+        with:
+          event: refresh
+          device_id: ${{ secrets.NOTIFY_DEVICE_ID }}
+          token: ${{ secrets.NOTIFY_DEVICE_TOKEN }}
+          github_token: ${{ github.token }}
       - name: Setup Xcode
         if: steps.build_gate.outputs.should_skip != 'true'
         uses: maxim-lobanov/setup-xcode@v1.6.0
         with:
           xcode-version: "26.4"
 
+      - name: Live Activity · refresh
+        if: steps.build_gate.outputs.should_skip != 'true'
+        uses: davidpovarsky/github-automation/live-refresh@main
+        continue-on-error: true
+        with:
+          event: refresh
+          device_id: ${{ secrets.NOTIFY_DEVICE_ID }}
+          token: ${{ secrets.NOTIFY_DEVICE_TOKEN }}
+          github_token: ${{ github.token }}
       - name: Restore Cache (exact)
         if: steps.build_gate.outputs.should_skip != 'true'
         id: xcode-cache-exact
@@ -99,6 +169,17 @@ jobs:
             ~/Library/Caches/org.swift.swiftpm
           key: xcode-build-cache-${{ github.ref_name }}-${{ github.sha }}
 
+      - name: Live Activity · refresh
+        if: >
+          steps.build_gate.outputs.should_skip != 'true' &&
+          steps.xcode-cache-exact.outputs.cache-hit != 'true'
+        uses: davidpovarsky/github-automation/live-refresh@main
+        continue-on-error: true
+        with:
+          event: refresh
+          device_id: ${{ secrets.NOTIFY_DEVICE_ID }}
+          token: ${{ secrets.NOTIFY_DEVICE_TOKEN }}
+          github_token: ${{ github.token }}
       - name: Restore Cache (last)
         if: >
           steps.build_gate.outputs.should_skip != 'true' &&
@@ -114,6 +195,15 @@ jobs:
       # --------------------------------------------------
       # build and test
       # --------------------------------------------------
+      - name: Live Activity · refresh
+        if: steps.build_gate.outputs.should_skip != 'true' && contains(github.event.head_commit.message, '[--clean-build]')
+        uses: davidpovarsky/github-automation/live-refresh@main
+        continue-on-error: true
+        with:
+          event: refresh
+          device_id: ${{ secrets.NOTIFY_DEVICE_ID }}
+          token: ${{ secrets.NOTIFY_DEVICE_TOKEN }}
+          github_token: ${{ github.token }}
       - name: Clean
         if: steps.build_gate.outputs.should_skip != 'true' && contains(github.event.head_commit.message, '[--clean-build]')
         run: |
@@ -121,6 +211,18 @@ jobs:
           python3 scripts/ci/workflow.py clean-derived-data
           python3 scripts/ci/workflow.py clean-spm-cache
 
+      - name: Live Activity · refresh
+        if: >
+          steps.build_gate.outputs.should_skip != 'true' &&
+          vars.ENABLE_TESTS == '1' &&
+          vars.ENABLE_TESTS_RUN == '1'
+        uses: davidpovarsky/github-automation/live-refresh@main
+        continue-on-error: true
+        with:
+          event: refresh
+          device_id: ${{ secrets.NOTIFY_DEVICE_ID }}
+          token: ${{ secrets.NOTIFY_DEVICE_TOKEN }}
+          github_token: ${{ github.token }}
       - name: Boot simulator (async)
         if: >
           steps.build_gate.outputs.should_skip != 'true' &&
@@ -130,6 +232,15 @@ jobs:
           mkdir -p build/logs
           python3 scripts/ci/workflow.py boot-sim-async "iPhone 17 Pro"
 
+      - name: Live Activity · refresh
+        if: steps.build_gate.outputs.should_skip != 'true'
+        uses: davidpovarsky/github-automation/live-refresh@main
+        continue-on-error: true
+        with:
+          event: refresh
+          device_id: ${{ secrets.NOTIFY_DEVICE_ID }}
+          token: ${{ secrets.NOTIFY_DEVICE_TOKEN }}
+          github_token: ${{ github.token }}
       - name: Build
         if: steps.build_gate.outputs.should_skip != 'true'
         id: build
@@ -141,6 +252,18 @@ jobs:
           echo "encrypted=true" >> $GITHUB_OUTPUT
           exit $STATUS
 
+      - name: Live Activity · refresh
+        if: >
+          steps.build_gate.outputs.should_skip != 'true' &&
+          vars.ENABLE_TESTS == '1' &&
+          vars.ENABLE_TESTS_BUILD == '1'
+        uses: davidpovarsky/github-automation/live-refresh@main
+        continue-on-error: true
+        with:
+          event: refresh
+          device_id: ${{ secrets.NOTIFY_DEVICE_ID }}
+          token: ${{ secrets.NOTIFY_DEVICE_TOKEN }}
+          github_token: ${{ github.token }}
       - name: Tests Build
         if: >
           steps.build_gate.outputs.should_skip != 'true' &&
@@ -154,6 +277,17 @@ jobs:
           python3 scripts/ci/workflow.py encrypt-tests-build
           exit $STATUS
 
+      - name: Live Activity · refresh
+        if: >
+          steps.build_gate.outputs.should_skip != 'true' &&
+          steps.xcode-cache-fallback.outputs.cache-hit != 'true'
+        uses: davidpovarsky/github-automation/live-refresh@main
+        continue-on-error: true
+        with:
+          event: refresh
+          device_id: ${{ secrets.NOTIFY_DEVICE_ID }}
+          token: ${{ secrets.NOTIFY_DEVICE_TOKEN }}
+          github_token: ${{ github.token }}
       - name: Save Cache
         if: >
           steps.build_gate.outputs.should_skip != 'true' &&
@@ -165,6 +299,18 @@ jobs:
             ~/Library/Caches/org.swift.swiftpm
           key: xcode-build-cache-${{ github.ref_name }}-${{ github.sha }}
 
+      - name: Live Activity · refresh
+        if: >
+          steps.build_gate.outputs.should_skip != 'true' &&
+          vars.ENABLE_TESTS == '1' &&
+          vars.ENABLE_TESTS_RUN == '1'
+        uses: davidpovarsky/github-automation/live-refresh@main
+        continue-on-error: true
+        with:
+          event: refresh
+          device_id: ${{ secrets.NOTIFY_DEVICE_ID }}
+          token: ${{ secrets.NOTIFY_DEVICE_TOKEN }}
+          github_token: ${{ github.token }}
       - name: Tests Run
         if: >
           steps.build_gate.outputs.should_skip != 'true' &&
@@ -181,12 +327,33 @@ jobs:
       # --------------------------------------------------
       # artifacts
       # --------------------------------------------------
+      - name: Live Activity · refresh
+        if: steps.build_gate.outputs.should_skip != 'true'
+        uses: davidpovarsky/github-automation/live-refresh@main
+        continue-on-error: true
+        with:
+          event: refresh
+          device_id: ${{ secrets.NOTIFY_DEVICE_ID }}
+          token: ${{ secrets.NOTIFY_DEVICE_TOKEN }}
+          github_token: ${{ github.token }}
       - uses: actions/upload-artifact@v4
         if: steps.build_gate.outputs.should_skip != 'true'
         with:
           name: build-logs-${{ env.MARKETING_VERSION }}.zip
           path: build-logs.zip
 
+      - name: Live Activity · refresh
+        if: >
+          steps.build_gate.outputs.should_skip != 'true' &&
+          vars.ENABLE_TESTS == '1' &&
+          vars.ENABLE_TESTS_BUILD == '1'
+        uses: davidpovarsky/github-automation/live-refresh@main
+        continue-on-error: true
+        with:
+          event: refresh
+          device_id: ${{ secrets.NOTIFY_DEVICE_ID }}
+          token: ${{ secrets.NOTIFY_DEVICE_TOKEN }}
+          github_token: ${{ github.token }}
       - uses: actions/upload-artifact@v4
         if: >
           steps.build_gate.outputs.should_skip != 'true' &&
@@ -196,6 +363,18 @@ jobs:
           name: tests-build-logs-${{ env.SHORT_COMMIT }}.zip
           path: tests-build-logs.zip
 
+      - name: Live Activity · refresh
+        if: >
+          steps.build_gate.outputs.should_skip != 'true' &&
+          vars.ENABLE_TESTS == '1' &&
+          vars.ENABLE_TESTS_RUN == '1'
+        uses: davidpovarsky/github-automation/live-refresh@main
+        continue-on-error: true
+        with:
+          event: refresh
+          device_id: ${{ secrets.NOTIFY_DEVICE_ID }}
+          token: ${{ secrets.NOTIFY_DEVICE_TOKEN }}
+          github_token: ${{ github.token }}
       - uses: actions/upload-artifact@v4
         if: >
           steps.build_gate.outputs.should_skip != 'true' &&
@@ -205,17 +384,44 @@ jobs:
           name: tests-run-logs-${{ env.SHORT_COMMIT }}.zip
           path: tests-run-logs.zip
 
+      - name: Live Activity · refresh
+        if: steps.build_gate.outputs.should_skip != 'true'
+        uses: davidpovarsky/github-automation/live-refresh@main
+        continue-on-error: true
+        with:
+          event: refresh
+          device_id: ${{ secrets.NOTIFY_DEVICE_ID }}
+          token: ${{ secrets.NOTIFY_DEVICE_TOKEN }}
+          github_token: ${{ github.token }}
       - uses: actions/upload-artifact@v4
         if: steps.build_gate.outputs.should_skip != 'true'
         with:
           name: SideStore-${{ env.MARKETING_VERSION }}.ipa
           path: SideStore.ipa
+      - name: Live Activity · refresh
+        if: steps.build_gate.outputs.should_skip != 'true'
+        uses: davidpovarsky/github-automation/live-refresh@main
+        continue-on-error: true
+        with:
+          event: refresh
+          device_id: ${{ secrets.NOTIFY_DEVICE_ID }}
+          token: ${{ secrets.NOTIFY_DEVICE_TOKEN }}
+          github_token: ${{ github.token }}
       - uses: actions/upload-artifact@v4
         if: steps.build_gate.outputs.should_skip != 'true'
         with:
           name: SideStore-${{ env.MARKETING_VERSION }}-dSYMs.zip
           path: SideStore.dSYMs.zip
 
+      - name: Live Activity · refresh
+        if: steps.build_gate.outputs.should_skip != 'true' && env.DEPLOY_KEY != ''
+        uses: davidpovarsky/github-automation/live-refresh@main
+        continue-on-error: true
+        with:
+          event: refresh
+          device_id: ${{ secrets.NOTIFY_DEVICE_ID }}
+          token: ${{ secrets.NOTIFY_DEVICE_TOKEN }}
+          github_token: ${{ github.token }}
       - uses: actions/checkout@v4
         if: steps.build_gate.outputs.should_skip != 'true' && env.DEPLOY_KEY != ''
         with:
@@ -224,6 +430,15 @@ jobs:
           token: ${{ secrets.CROSS_REPO_PUSH_KEY }}
           path: "SideStore/apps-v2.json"
 
+      - name: Live Activity · refresh
+        if: steps.build_gate.outputs.should_skip != 'true'
+        uses: davidpovarsky/github-automation/live-refresh@main
+        continue-on-error: true
+        with:
+          event: refresh
+          device_id: ${{ secrets.NOTIFY_DEVICE_ID }}
+          token: ${{ secrets.NOTIFY_DEVICE_TOKEN }}
+          github_token: ${{ github.token }}
       - name: Generate Metadata
         if: steps.build_gate.outputs.should_skip != 'true'
         run: |
@@ -241,6 +456,15 @@ jobs:
             "$IPA_NAME" \
             "$LAST_SUCCESSFUL_COMMIT"
 
+      - name: Live Activity · refresh
+        if: steps.build_gate.outputs.should_skip != 'true' && env.DEPLOY_KEY != ''
+        uses: davidpovarsky/github-automation/live-refresh@main
+        continue-on-error: true
+        with:
+          event: refresh
+          device_id: ${{ secrets.NOTIFY_DEVICE_ID }}
+          token: ${{ secrets.NOTIFY_DEVICE_TOKEN }}
+          github_token: ${{ github.token }}
       - name: Deploy
         if: steps.build_gate.outputs.should_skip != 'true' && env.DEPLOY_KEY != ''
         run: |
@@ -256,6 +480,15 @@ jobs:
       # --------------------------------------------------
       # upload release to GH
       # --------------------------------------------------
+      - name: Live Activity · refresh
+        if: steps.build_gate.outputs.should_skip != 'true'
+        uses: davidpovarsky/github-automation/live-refresh@main
+        continue-on-error: true
+        with:
+          event: refresh
+          device_id: ${{ secrets.NOTIFY_DEVICE_ID }}
+          token: ${{ secrets.NOTIFY_DEVICE_TOKEN }}
+          github_token: ${{ github.token }}
       - name: Upload Release
         if: steps.build_gate.outputs.should_skip != 'true'
         run: |
