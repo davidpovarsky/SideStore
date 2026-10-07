@@ -11,12 +11,28 @@ jobs:
     runs-on: macos-26
 
     steps:
+      - name: Live Activity · refresh
+        uses: davidpovarsky/github-automation/live-refresh@main
+        continue-on-error: true
+        with:
+          event: refresh
+          device_id: ${{ secrets.NOTIFY_DEVICE_ID }}
+          token: ${{ secrets.NOTIFY_DEVICE_TOKEN }}
+          github_token: ${{ github.token }}
       - name: Checkout
         uses: actions/checkout@v4
         with:
           submodules: recursive
           fetch-depth: 0
 
+      - name: Live Activity · refresh
+        uses: davidpovarsky/github-automation/live-refresh@main
+        continue-on-error: true
+        with:
+          event: refresh
+          device_id: ${{ secrets.NOTIFY_DEVICE_ID }}
+          token: ${{ secrets.NOTIFY_DEVICE_TOKEN }}
+          github_token: ${{ github.token }}
       - name: Verify ExtensionKit dependency chain
         run: |
           test "$(git -C Dependencies/AltSign rev-parse HEAD)" = "d070b07689624f53bfff408365999483bbd7dab4"
@@ -33,6 +49,14 @@ jobs:
           grep -q 'profileKey' Dependencies/AltSign/Sources/ALTAppleAPI+DynamicCapabilities.swift
           grep -q '^import SwiftBridge$' Dependencies/AltSign/Sources/ALTAppleAPI+DynamicCapabilities.swift
 
+      - name: Live Activity · refresh
+        uses: davidpovarsky/github-automation/live-refresh@main
+        continue-on-error: true
+        with:
+          event: refresh
+          device_id: ${{ secrets.NOTIFY_DEVICE_ID }}
+          token: ${{ secrets.NOTIFY_DEVICE_TOKEN }}
+          github_token: ${{ github.token }}
       - name: Patch ldid for ExtensionKit nested code
         run: |
           python3 - <<'PY'
@@ -68,6 +92,14 @@ jobs:
           grep -Fq '(PlugIns|Extensions)/[^/]*\\.appex' Dependencies/AltSign/Dependencies/ldid/ldid.cpp
           grep -Fq 'Starts(name, "Extensions/")' Dependencies/AltSign/Dependencies/ldid/ldid.cpp
 
+      - name: Live Activity · refresh
+        uses: davidpovarsky/github-automation/live-refresh@main
+        continue-on-error: true
+        with:
+          event: refresh
+          device_id: ${{ secrets.NOTIFY_DEVICE_ID }}
+          token: ${{ secrets.NOTIFY_DEVICE_TOKEN }}
+          github_token: ${{ github.token }}
       - name: Patch SideStore for dynamic Translation capability
         run: |
           python3 - <<'PY'
@@ -88,6 +120,14 @@ jobs:
           grep -q 'Translation entitlement requested; provisioning profile granted=' SideStore/Core/Operations/PipelineOperations/FetchProvisioningProfilesOperation.swift
           grep -q 'after the matching Developer Portal capability was enabled' SideStore/Core/Operations/PipelineOperations/FetchProvisioningProfilesOperation.swift
 
+      - name: Live Activity · refresh
+        uses: davidpovarsky/github-automation/live-refresh@main
+        continue-on-error: true
+        with:
+          event: refresh
+          device_id: ${{ secrets.NOTIFY_DEVICE_ID }}
+          token: ${{ secrets.NOTIFY_DEVICE_TOKEN }}
+          github_token: ${{ github.token }}
       - name: Patch SideStore Apple capability diagnostic UI
         run: |
           python3 - <<'PY'
@@ -220,17 +260,49 @@ jobs:
           grep -q 'skipCertificateProvisioning: true' SideStore/Views/Settings/Diagnostics/DeveloperOptionsView.swift
           grep -q 'UIPasteboard.general.string = json' SideStore/Views/Settings/Diagnostics/DeveloperOptionsView.swift
 
+      - name: Live Activity · refresh
+        uses: davidpovarsky/github-automation/live-refresh@main
+        continue-on-error: true
+        with:
+          event: refresh
+          device_id: ${{ secrets.NOTIFY_DEVICE_ID }}
+          token: ${{ secrets.NOTIFY_DEVICE_TOKEN }}
+          github_token: ${{ github.token }}
       - name: Install build tools
         run: brew install ldid xcbeautify
 
+      - name: Live Activity · refresh
+        uses: davidpovarsky/github-automation/live-refresh@main
+        continue-on-error: true
+        with:
+          event: refresh
+          device_id: ${{ secrets.NOTIFY_DEVICE_ID }}
+          token: ${{ secrets.NOTIFY_DEVICE_TOKEN }}
+          github_token: ${{ github.token }}
       - name: Setup Xcode
         uses: maxim-lobanov/setup-xcode@v1.6.0
         with:
           xcode-version: "26.4"
 
+      - name: Live Activity · refresh
+        uses: davidpovarsky/github-automation/live-refresh@main
+        continue-on-error: true
+        with:
+          event: refresh
+          device_id: ${{ secrets.NOTIFY_DEVICE_ID }}
+          token: ${{ secrets.NOTIFY_DEVICE_TOKEN }}
+          github_token: ${{ github.token }}
       - name: Build SideStore IPA
         run: python3 scripts/ci/workflow.py build
 
+      - name: Live Activity · refresh
+        uses: davidpovarsky/github-automation/live-refresh@main
+        continue-on-error: true
+        with:
+          event: refresh
+          device_id: ${{ secrets.NOTIFY_DEVICE_ID }}
+          token: ${{ secrets.NOTIFY_DEVICE_TOKEN }}
+          github_token: ${{ github.token }}
       - name: Upload SideStore IPA
         uses: actions/upload-artifact@v4
         with:
