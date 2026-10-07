@@ -6,7 +6,6 @@ on:
       - "Custom ExtensionKit SideStore Build"
       - "Nightly SideStore Build"
     types:
-      - requested
       - in_progress
       - completed
 
